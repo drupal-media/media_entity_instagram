@@ -41,6 +41,8 @@ If you need to get other fields, you will need to use Instagram's API. To get th
 - Grab your client ID from the instagram developer site
 - In your Instagram bundle configuration set "Whether to use Instagram api to fetch instagrams or not" to "Yes"" and paste in the "Client ID"
 
+**NOTE:** We are currently using a patched version of the library with the ability to get the media by shortcode. This is the pull request for it: https://github.com/galen/PHP-Instagram-API/pull/46/files
+
 ### Storing field values
 If you want to store the fields that are retrieved from Instagram you should create appropriate fields on the created media bundle (id) and map this to the fields provided by Instagram.php.
 

@@ -56,13 +56,6 @@ class Instagram extends PluginBase implements MediaTypeInterface, ContainerFacto
   }
 
   /**
-   * The HTTP client to fetch the feed data with.
-   *
-   * @var \GuzzleHttp\ClientInterface
-   */
-  protected $httpClient;
-
-  /**
    * The entity manager object.
    *
    * @var \Drupal\Core\Entity\EntityManager;
@@ -77,7 +70,6 @@ class Instagram extends PluginBase implements MediaTypeInterface, ContainerFacto
       $configuration,
       $plugin_id,
       $plugin_definition,
-      $container->get('http_client'),
       $container->get('entity.manager')
     );
   }
@@ -91,10 +83,11 @@ class Instagram extends PluginBase implements MediaTypeInterface, ContainerFacto
    *   The plugin_id for the plugin instance.
    * @param mixed $plugin_definition
    *   The plugin implementation definition.
+   * @param EntityManager $entity_manager
+   *   EntityManager object.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, ClientInterface $http_client, EntityManager $entity_manager) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityManager $entity_manager) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
-    $this->httpClient = $http_client;
     $this->entityManager = $entity_manager;
   }
 
@@ -110,8 +103,8 @@ class Instagram extends PluginBase implements MediaTypeInterface, ContainerFacto
       $fields += array(
         'id' => $this->t('Media ID'),
         'type' => $this->t('Media type: image or video'),
-        'thumbnail' => $this->t('Link to the instagram thumbnail'),
-        'username' => $this->t('Username of the posted instagram'),
+        'thumbnail' => $this->t('Link to the thumbnail'),
+        'username' => $this->t('Author of the post'),
         'caption' => $this->t('Caption'),
         'tags' => $this->t('Tags'),
       );
@@ -280,6 +273,14 @@ class Instagram extends PluginBase implements MediaTypeInterface, ContainerFacto
         return;
       }
 
+      if (!isset($this->configuration['client_id'])) {
+        drupal_set_message(t('The client ID is not available. Consult the README.md for installation instructions.'), 'error');
+        return;
+      }
+      if (empty($this->configuration['client_id'])) {
+        drupal_set_message(t('The client ID is missing. Please add it in your Instagram settings.'), 'error');
+        return;
+      }
       $instagram_object = new \Instagram\Instagram;
       $instagram_object->setClientID($this->configuration['client_id']);
       $result = $instagram_object->getMediaByShortcode($shortcode)->getData();
@@ -288,7 +289,7 @@ class Instagram extends PluginBase implements MediaTypeInterface, ContainerFacto
         return $result;
       }
       else {
-        throw new MediaTypeException(NULL, 'The tweet could not be retrieved.');
+        throw new MediaTypeException(NULL, 'The media could not be retrieved.');
       }
     }
   }
