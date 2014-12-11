@@ -9,6 +9,6 @@ description: 'Instagram posts.'
 type: instagram
 third_party_settings: {  }
 type_configuration:
-  source_field: tweet
+  source_field: instagram
   use_instagram_api: 0
 field_map: {  }
