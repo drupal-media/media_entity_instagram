@@ -8,6 +8,7 @@
 namespace Drupal\media_entity_instagram\Plugin\MediaEntity\Type;
 
 use Drupal\Component\Plugin\PluginBase;
+use Drupal\Core\Config\Config;
 use Drupal\Core\Entity\EntityManager;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\media_entity\MediaBundleInterface;
@@ -63,6 +64,13 @@ class Instagram extends PluginBase implements MediaTypeInterface, ContainerFacto
   protected $entityManager;
 
   /**
+   * Media entity Instagram config object.
+   *
+   * @var \Drupal\Core\Config\Config
+   */
+  protected $config;
+
+  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
@@ -70,8 +78,9 @@ class Instagram extends PluginBase implements MediaTypeInterface, ContainerFacto
       $configuration,
       $plugin_id,
       $plugin_definition,
-      $container->get('entity.manager')
-    );
+      $container->get('entity.manager'),
+      $container->get('config.factory')->get('media_entity_instagram.settings')
+   );
   }
 
   /**
@@ -85,10 +94,13 @@ class Instagram extends PluginBase implements MediaTypeInterface, ContainerFacto
    *   The plugin implementation definition.
    * @param EntityManager $entity_manager
    *   EntityManager object.
+   * @param \Drupal\Core\Config\Config $config
+   *   Config object.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityManager $entity_manager) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityManager $entity_manager, Config $config) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->entityManager = $entity_manager;
+    $this->config = $config;
   }
 
   /**
@@ -104,6 +116,8 @@ class Instagram extends PluginBase implements MediaTypeInterface, ContainerFacto
         'id' => $this->t('Media ID'),
         'type' => $this->t('Media type: image or video'),
         'thumbnail' => $this->t('Link to the thumbnail'),
+        'thumbnail_local' => $this->t('Copies thumbnail locally and return it\'s URI'),
+        'thumbnail_local_uri' => $this->t('Returns local URI of the thumbnail'),
         'username' => $this->t('Author of the post'),
         'caption' => $this->t('Caption'),
         'tags' => $this->t('Tags'),
@@ -145,6 +159,27 @@ class Instagram extends PluginBase implements MediaTypeInterface, ContainerFacto
         case 'thumbnail':
           if (isset($instagram->images->thumbnail->url)) {
             return $instagram->images->thumbnail->url;
+          }
+          return FALSE;
+
+        case 'thumbnail_local':
+          if (isset($instagram->images->thumbnail->url)) {
+            $local_uri = $this->config->get('local_images') . '/' . $matches['shortcode'] . '.' . pathinfo($instagram->images->thumbnail->url, PATHINFO_EXTENSION);
+
+            if (!file_exists($local_uri)) {
+              file_prepare_directory($local_uri, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
+
+              $image = file_get_contents($local_uri);
+              file_unmanaged_save_data($image, $local_uri, FILE_EXISTS_REPLACE);
+
+              return $local_uri;
+            }
+          }
+          return FALSE;
+
+      case 'thumbnail_local_uri':
+          if (isset($instagram->images->thumbnail->url)) {
+            return $this->config->get('local_images') . '/' . $matches['shortcode'] . '.' . pathinfo($instagram->images->thumbnail->url, PATHINFO_EXTENSION);
           }
           return FALSE;
 
@@ -292,6 +327,17 @@ class Instagram extends PluginBase implements MediaTypeInterface, ContainerFacto
         throw new MediaTypeException(NULL, 'The media could not be retrieved.');
       }
     }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function thumbnail(MediaInterface $media) {
+    if ($local_image = $this->getField($media, 'thumbnail_local')) {
+      return $local_image;
+    }
+
+    return $this->config->get('icon_base') . '/instagram.png';
   }
 
 }
