@@ -1,0 +1,11 @@
+{
+  "require": {
+    "PHP-Instagram-API/PHP-Instagram-API": "dev-master"
+  },
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "git@github.com:designesse/PHP-Instagram-API.git"
+    }
+  ]
+}
