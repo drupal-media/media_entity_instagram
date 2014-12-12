@@ -5,7 +5,7 @@
   "repositories": [
     {
       "type": "vcs",
-      "url": "git@github.com:designesse/PHP-Instagram-API.git"
+      "url": "https://git@github.com:designesse/PHP-Instagram-API.git"
     }
   ]
 }
