@@ -1,3 +1,11 @@
+media_entity_instagram.settings:
+  type: mapping
+  label: 'Media entity Instagram settings'
+  mapping:
+    local_images:
+      type: string
+      label: 'Base folder for tuhmbnails'
+
 media_entity.bundle.type.instagram:
   type: mapping
   label: 'Instagram type configuration'
