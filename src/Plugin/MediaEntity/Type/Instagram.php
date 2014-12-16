@@ -8,7 +8,7 @@
 namespace Drupal\media_entity_instagram\Plugin\MediaEntity\Type;
 
 use Drupal\Component\Plugin\PluginBase;
-use Drupal\Core\Config\Config;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityManager;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\media_entity\MediaBundleInterface;
@@ -64,11 +64,11 @@ class Instagram extends PluginBase implements MediaTypeInterface, ContainerFacto
   protected $entityManager;
 
   /**
-   * Media entity Instagram config object.
+   * Config factory service.
    *
-   * @var \Drupal\Core\Config\Config
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
    */
-  protected $config;
+  protected $configFactory;
 
   /**
    * {@inheritdoc}
@@ -92,15 +92,15 @@ class Instagram extends PluginBase implements MediaTypeInterface, ContainerFacto
    *   The plugin_id for the plugin instance.
    * @param mixed $plugin_definition
    *   The plugin implementation definition.
-   * @param EntityManager $entity_manager
-   *   EntityManager object.
-   * @param \Drupal\Core\Config\Config $config
-   *   Config object.
+   * @param \Drupal\Core\Entity\EntityManager $entity_manager
+   *   Entity manager service.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   Config factory service.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityManager $entity_manager, Config $config) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityManager $entity_manager, ConfigFactoryInterface $config) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->entityManager = $entity_manager;
-    $this->config = $config;
+    $this->configFactory = $config_factory;
   }
 
   /**
@@ -164,7 +164,7 @@ class Instagram extends PluginBase implements MediaTypeInterface, ContainerFacto
 
         case 'thumbnail_local':
           if (isset($instagram->images->thumbnail->url)) {
-            $local_uri = $this->config->get('local_images') . '/' . $matches['shortcode'] . '.' . pathinfo($instagram->images->thumbnail->url, PATHINFO_EXTENSION);
+            $local_uri = $this->configFactory->get('media_entity_instagram.settings')->get('local_images') . '/' . $matches['shortcode'] . '.' . pathinfo($instagram->images->thumbnail->url, PATHINFO_EXTENSION);
 
             if (!file_exists($local_uri)) {
               file_prepare_directory($local_uri, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
@@ -179,7 +179,7 @@ class Instagram extends PluginBase implements MediaTypeInterface, ContainerFacto
 
       case 'thumbnail_local_uri':
           if (isset($instagram->images->thumbnail->url)) {
-            return $this->config->get('local_images') . '/' . $matches['shortcode'] . '.' . pathinfo($instagram->images->thumbnail->url, PATHINFO_EXTENSION);
+            return $this->configFactory->get('media_entity_instagram.settings')->get('local_images') . '/' . $matches['shortcode'] . '.' . pathinfo($instagram->images->thumbnail->url, PATHINFO_EXTENSION);
           }
           return FALSE;
 
@@ -337,7 +337,7 @@ class Instagram extends PluginBase implements MediaTypeInterface, ContainerFacto
       return $local_image;
     }
 
-    return $this->config->get('icon_base') . '/instagram.png';
+    return $this->configFactory->get('media_entity.settings')->get('icon_base') . '/instagram.png';
   }
 
 }
