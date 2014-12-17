@@ -79,7 +79,7 @@ class Instagram extends PluginBase implements MediaTypeInterface, ContainerFacto
       $plugin_id,
       $plugin_definition,
       $container->get('entity.manager'),
-      $container->get('config.factory')->get('media_entity_instagram.settings')
+      $container->get('config.factory')
    );
   }
 
@@ -97,7 +97,7 @@ class Instagram extends PluginBase implements MediaTypeInterface, ContainerFacto
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   Config factory service.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityManager $entity_manager, ConfigFactoryInterface $config) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityManager $entity_manager, ConfigFactoryInterface $config_factory) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->entityManager = $entity_manager;
     $this->configFactory = $config_factory;
