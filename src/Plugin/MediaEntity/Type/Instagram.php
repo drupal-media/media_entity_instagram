@@ -7,18 +7,13 @@
 
 namespace Drupal\media_entity_instagram\Plugin\MediaEntity\Type;
 
-use Drupal\Component\Plugin\PluginBase;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityManager;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\media_entity\MediaBundleInterface;
 use Drupal\media_entity\MediaInterface;
+use Drupal\media_entity\MediaTypeBase;
 use Drupal\media_entity\MediaTypeException;
-use Drupal\media_entity\MediaTypeInterface;
-use GuzzleHttp\ClientInterface;
-use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-
 
 /**
  * Provides media type plugin for Instagram.
@@ -29,39 +24,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   description = @Translation("Provides business logic and metadata for Instagram.")
  * )
  */
-class Instagram extends PluginBase implements MediaTypeInterface, ContainerFactoryPluginInterface {
-  use StringTranslationTrait;
-
-  /**
-   * List of validation regular expressions.
-   *
-   * @var array
-   */
-  protected $validationRegexp = array(
-    '@((http|https):){0,1}//(www\.){0,1}instagram\.com/p/(?<shortcode>[a-z0-9_-]+)@i' => 'shortcode',
-    '@((http|https):){0,1}//(www\.){0,1}instagr\.am/p/(?<shortcode>[a-z0-9_-]+)@i' => 'shortcode',
-  );
-
-  /**
-   * Plugin label.
-   *
-   * @var string
-   */
-  protected $label;
-
-  /**
-   * {@inheritdoc}
-   */
-  public function label() {
-    return $this->label;
-  }
-
-  /**
-   * The entity manager object.
-   *
-   * @var \Drupal\Core\Entity\EntityManager;
-   */
-  protected $entityManager;
+class Instagram extends MediaTypeBase {
 
   /**
    * Config factory service.
@@ -69,19 +32,6 @@ class Instagram extends PluginBase implements MediaTypeInterface, ContainerFacto
    * @var \Drupal\Core\Config\ConfigFactoryInterface
    */
   protected $configFactory;
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
-      $configuration,
-      $plugin_id,
-      $plugin_definition,
-      $container->get('entity.manager'),
-      $container->get('config.factory')
-   );
-  }
 
   /**
    * Constructs a new class instance.
@@ -98,10 +48,32 @@ class Instagram extends PluginBase implements MediaTypeInterface, ContainerFacto
    *   Config factory service.
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityManager $entity_manager, ConfigFactoryInterface $config_factory) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
-    $this->entityManager = $entity_manager;
+    parent::__construct($configuration, $plugin_id, $plugin_definition, $entity_manager, $config_factory->get('media_entity.settings'));
     $this->configFactory = $config_factory;
   }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    return new static(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
+      $container->get('entity.manager'),
+      $container->get('config.factory')
+    );
+  }
+
+  /**
+   * List of validation regular expressions.
+   *
+   * @var array
+   */
+  protected $validationRegexp = array(
+    '@((http|https):){0,1}//(www\.){0,1}instagram\.com/p/(?<shortcode>[a-z0-9_-]+)@i' => 'shortcode',
+    '@((http|https):){0,1}//(www\.){0,1}instagr\.am/p/(?<shortcode>[a-z0-9_-]+)@i' => 'shortcode',
+  );
 
   /**
    * {@inheritdoc}
@@ -337,7 +309,7 @@ class Instagram extends PluginBase implements MediaTypeInterface, ContainerFacto
       return $local_image;
     }
 
-    return $this->configFactory->get('media_entity.settings')->get('icon_base') . '/instagram.png';
+    return $this->config->get('icon_base') . '/instagram.png';
   }
 
 }
