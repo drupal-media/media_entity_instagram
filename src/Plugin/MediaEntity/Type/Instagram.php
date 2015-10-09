@@ -70,7 +70,7 @@ class Instagram extends MediaTypeBase {
    *
    * @var array
    */
-  protected $validationRegexp = array(
+  public static $validationRegexp = array(
     '@((http|https):){0,1}//(www\.){0,1}instagram\.com/p/(?<shortcode>[a-z0-9_-]+)@i' => 'shortcode',
     '@((http|https):){0,1}//(www\.){0,1}instagr\.am/p/(?<shortcode>[a-z0-9_-]+)@i' => 'shortcode',
   );
@@ -229,12 +229,14 @@ class Instagram extends MediaTypeBase {
   /**
    * {@inheritdoc}
    */
-  public function validate(MediaInterface $media) {
-    $matches = $this->matchRegexp($media);
+  public function attachConstraints(MediaInterface $media) {
+    parent::attachConstraints($media);
 
-    // Validate regex.
-    if (!$matches) {
-      throw new MediaTypeException($this->configuration['source_field'], 'Not valid URL/embed code.');
+    $source_field_name = $this->configuration['source_field'];
+    foreach ($media->get($source_field_name) as &$embed_code) {
+      /** @var \Drupal\Core\TypedData\DataDefinitionInterface $typed_data */
+      $typed_data = $embed_code->getDataDefinition();
+      $typed_data->addConstraint('InstagramEmbedCode');
     }
   }
 
