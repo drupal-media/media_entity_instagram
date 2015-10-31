@@ -13,7 +13,7 @@ use Symfony\Component\Validator\Constraint;
  * Check if a value is a valid Instagram embed code/URL.
  *
  * @constraint(
- *   id = InstagramEmbedCode,
+ *   id = "InstagramEmbedCode",
  *   label = @Translation("Instagram embed code", context = "Validation"),
  *   type = { "entity", "entity_reference" }
  * )
