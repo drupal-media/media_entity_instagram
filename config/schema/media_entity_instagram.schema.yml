@@ -1,5 +1,5 @@
 media_entity_instagram.settings:
-  type: mapping
+  type: config_object
   label: 'Media entity Instagram settings'
   mapping:
     local_images:
@@ -19,3 +19,14 @@ media_entity.bundle.type.instagram:
     client_id:
       type: string
       label: 'Field with client id'
+
+field.formatter.settings.instagram_embed:
+  type: mapping
+  label: 'Image field display format settings'
+  mapping:
+    width:
+      type: integer
+      label: 'Width'
+    height:
+      type: integer
+      label: 'Height'

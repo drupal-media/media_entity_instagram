@@ -2,10 +2,10 @@
 
 /**
  * @file
- * Contains \Drupal\media_entity_instagram\Tests\Unit\ConstraintsTest.
+ * Contains \Drupal\Tests\media_entity_instagram\Unit\ConstraintsTest.
  */
 
-namespace Drupal\media_entity_instagram\Tests\Unit;
+namespace Drupal\Tests\media_entity_instagram\Unit;
 
 use Drupal\media_entity_instagram\Plugin\Validation\Constraint\InstagramEmbedCodeConstraint;
 use Drupal\media_entity_instagram\Plugin\Validation\Constraint\InstagramEmbedCodeConstraintValidator;
