@@ -232,11 +232,15 @@ class Instagram extends MediaTypeBase {
   public function attachConstraints(MediaInterface $media) {
     parent::attachConstraints($media);
 
-    $source_field_name = $this->configuration['source_field'];
-    foreach ($media->get($source_field_name) as &$embed_code) {
-      /** @var \Drupal\Core\TypedData\DataDefinitionInterface $typed_data */
-      $typed_data = $embed_code->getDataDefinition();
-      $typed_data->addConstraint('InstagramEmbedCode');
+    if (isset($this->configuration['source_field'])) {
+      $source_field_name = $this->configuration['source_field'];
+      if ($media->hasField($source_field_name)) {
+        foreach ($media->get($source_field_name) as &$embed_code) {
+          /** @var \Drupal\Core\TypedData\DataDefinitionInterface $typed_data */
+          $typed_data = $embed_code->getDataDefinition();
+          $typed_data->addConstraint('InstagramEmbedCode');
+        }
+      }
     }
   }
 
@@ -253,15 +257,18 @@ class Instagram extends MediaTypeBase {
    */
   protected function matchRegexp(MediaInterface $media) {
     $matches = array();
-    $source_field = $this->configuration['source_field'];
 
-    $property_name = $media->{$source_field}->first()->mainPropertyName();
-    foreach (self::validationRegexp as $pattern => $key) {
-      if (preg_match($pattern, $media->{$source_field}->{$property_name}, $matches)) {
-        return $matches;
+    if (isset($this->configuration['source_field'])) {
+      $source_field = $this->configuration['source_field'];
+      if ($media->hasField($source_field)) {
+        $property_name = $media->{$source_field}->first()->mainPropertyName();
+        foreach (self::validationRegexp as $pattern => $key) {
+          if (preg_match($pattern, $media->{$source_field}->{$property_name}, $matches)) {
+            return $matches;
+          }
+        }
       }
     }
-
     return FALSE;
   }
 
