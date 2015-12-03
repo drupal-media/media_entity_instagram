@@ -26,7 +26,7 @@ class InstagramEmbedCodeConstraintValidator extends ConstraintValidator {
 
     $matches = [];
     foreach (Instagram::$validationRegexp as $pattern => $key) {
-      if (preg_match($pattern, $value->value, $item_matches)) {
+      if (preg_match($pattern, $value, $item_matches)) {
         $matches[] = $item_matches;
       }
     }
