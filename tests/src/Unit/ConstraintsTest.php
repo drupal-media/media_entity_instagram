@@ -7,6 +7,8 @@
 
 namespace Drupal\Tests\media_entity_instagram\Unit;
 
+use Drupal\Core\Field\FieldDefinitionInterface;
+use Drupal\Core\Field\FieldItemInterface;
 use Drupal\media_entity_instagram\Plugin\Validation\Constraint\InstagramEmbedCodeConstraint;
 use Drupal\media_entity_instagram\Plugin\Validation\Constraint\InstagramEmbedCodeConstraintValidator;
 use Drupal\Tests\UnitTestCase;
@@ -47,8 +49,16 @@ class ConstraintsTest extends UnitTestCase {
     $validator = new InstagramEmbedCodeConstraintValidator();
     $validator->initialize($execution_context);
 
-    $data = new \stdClass();
-    $data->value = $embed_code;
+    // $data is a mock field item (string or string_long type, depending on the
+    // length of the embed code) which contains the embed code.
+    $data = $this->getMock(FieldItemInterface::class);
+
+    $field_definition = $this->getMock(FieldDefinitionInterface::class);
+    $field_definition->method('getType')->willReturn(strlen($embed_code) > 255 ? 'string_long' : 'string');
+
+    $data->method('getFieldDefinition')->willReturn($field_definition);
+    $data->method('__get')->with('value')->willReturn($embed_code);
+
     $validator->validate($data, $constraint);
   }
 
