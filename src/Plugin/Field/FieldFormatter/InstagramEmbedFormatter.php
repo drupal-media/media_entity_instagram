@@ -7,6 +7,7 @@
 
 namespace Drupal\media_entity_instagram\Plugin\Field\FieldFormatter;
 
+use Drupal\Core\Field\FieldItemInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\FormatterBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -19,11 +20,33 @@ use Drupal\media_entity_instagram\Plugin\MediaEntity\Type\Instagram;
  *   id = "instagram_embed",
  *   label = @Translation("Instagram embed"),
  *   field_types = {
- *     "string_long"
+ *     "link", "string", "string_long"
  *   }
  * )
  */
 class InstagramEmbedFormatter extends FormatterBase {
+
+  /**
+   * Extracts the embed code from a field item.
+   *
+   * @param \Drupal\Core\Field\FieldItemInterface $item
+   *   The field item.
+   *
+   * @return string|null
+   *   The embed code, or NULL if the field type is not supported.
+   */
+  protected function getEmbedCode(FieldItemInterface $item) {
+
+    switch ($item->getFieldDefinition()->getType()) {
+      case 'link':
+        return $item->uri;
+      case 'string':
+      case 'string_long':
+        return $item->value;
+      default:
+        break;
+    }
+  }
 
   /**
    * {@inheritdoc}
@@ -34,10 +57,15 @@ class InstagramEmbedFormatter extends FormatterBase {
     foreach ($items as $delta => $item) {
       $matches = [];
       foreach (Instagram::$validationRegexp as $pattern => $key) {
-        if (preg_match($pattern, $item->value, $matches)) {
-          break;
+        if (preg_match($pattern, $this->getEmbedCode($item), $item_matches)) {
+          $matches[] = $item_matches;
         }
       }
+
+      if (!empty($matches)) {
+        $matches = reset($matches);
+      }
+
       if (!empty($matches['shortcode'])) {
         $element[$delta] = [
           '#type' => 'html_tag',
