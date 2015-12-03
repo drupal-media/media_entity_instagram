@@ -19,14 +19,14 @@ class InstagramEmbedCodeConstraintValidator extends ConstraintValidator {
   /**
    * {@inheritdoc}
    */
-  public function validate($entity, Constraint $constraint) {
-    if (!isset($entity)) {
+  public function validate($value, Constraint $constraint) {
+    if (!isset($value)) {
       return;
     }
 
     $matches = [];
     foreach (Instagram::$validationRegexp as $pattern => $key) {
-      if (preg_match($pattern, $entity->value, $item_matches)) {
+      if (preg_match($pattern, $value->value, $item_matches)) {
         $matches[] = $item_matches;
       }
     }
