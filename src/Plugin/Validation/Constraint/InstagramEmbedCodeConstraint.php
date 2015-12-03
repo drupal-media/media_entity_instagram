@@ -15,7 +15,7 @@ use Symfony\Component\Validator\Constraint;
  * @constraint(
  *   id = "InstagramEmbedCode",
  *   label = @Translation("Instagram embed code", context = "Validation"),
- *   type = { "entity", "entity_reference" }
+ *   type = { "link", "string", "string_long" }
  * )
  */
 class InstagramEmbedCodeConstraint extends Constraint {
