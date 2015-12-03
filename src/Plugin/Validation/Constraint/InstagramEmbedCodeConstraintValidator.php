@@ -52,14 +52,10 @@ class InstagramEmbedCodeConstraintValidator extends ConstraintValidator {
       return $value;
     }
     elseif ($value instanceof FieldItemInterface) {
-      switch ($value->getFieldDefinition()->getType()) {
-        case 'link':
-          return $value->uri;
-        case 'string':
-        case 'string_long':
-          return $value->value;
-        default:
-          break;
+      $class = $value->getFieldDefinition()->getClass();
+      $property = $class::mainPropertyName();
+      if ($property) {
+        return $value->get($property);
       }
     }
   }
