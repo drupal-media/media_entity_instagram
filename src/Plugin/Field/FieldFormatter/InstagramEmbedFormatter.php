@@ -7,9 +7,11 @@
 
 namespace Drupal\media_entity_instagram\Plugin\Field\FieldFormatter;
 
+use Drupal\Core\Field\FieldItemInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\FormatterBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\media_entity\EmbedCodeValueTrait;
 use Drupal\media_entity_instagram\Plugin\MediaEntity\Type\Instagram;
 
 /**
@@ -19,11 +21,13 @@ use Drupal\media_entity_instagram\Plugin\MediaEntity\Type\Instagram;
  *   id = "instagram_embed",
  *   label = @Translation("Instagram embed"),
  *   field_types = {
- *     "string_long"
+ *     "link", "string", "string_long"
  *   }
  * )
  */
 class InstagramEmbedFormatter extends FormatterBase {
+
+  use EmbedCodeValueTrait;
 
   /**
    * {@inheritdoc}
@@ -34,10 +38,11 @@ class InstagramEmbedFormatter extends FormatterBase {
     foreach ($items as $delta => $item) {
       $matches = [];
       foreach (Instagram::$validationRegexp as $pattern => $key) {
-        if (preg_match($pattern, $item->value, $matches)) {
+        if (preg_match($pattern, $this->getEmbedCode($item), $matches)) {
           break;
         }
       }
+
       if (!empty($matches['shortcode'])) {
         $element[$delta] = [
           '#type' => 'html_tag',
