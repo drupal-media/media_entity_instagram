@@ -11,6 +11,7 @@ use Drupal\Core\Field\FieldItemInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\FormatterBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\media_entity\EmbedCodeValueTrait;
 use Drupal\media_entity_instagram\Plugin\MediaEntity\Type\Instagram;
 
 /**
@@ -26,27 +27,7 @@ use Drupal\media_entity_instagram\Plugin\MediaEntity\Type\Instagram;
  */
 class InstagramEmbedFormatter extends FormatterBase {
 
-  /**
-   * Extracts the embed code from a field item.
-   *
-   * @param \Drupal\Core\Field\FieldItemInterface $item
-   *   The field item.
-   *
-   * @return string|null
-   *   The embed code, or NULL if the field type is not supported.
-   */
-  protected function getEmbedCode(FieldItemInterface $item) {
-
-    switch ($item->getFieldDefinition()->getType()) {
-      case 'link':
-        return $item->uri;
-      case 'string':
-      case 'string_long':
-        return $item->value;
-      default:
-        break;
-    }
-  }
+  use EmbedCodeValueTrait;
 
   /**
    * {@inheritdoc}
