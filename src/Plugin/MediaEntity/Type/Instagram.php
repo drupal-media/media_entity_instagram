@@ -262,7 +262,7 @@ class Instagram extends MediaTypeBase {
       $source_field = $this->configuration['source_field'];
       if ($media->hasField($source_field)) {
         $property_name = $media->{$source_field}->first()->mainPropertyName();
-        foreach (self::validationRegexp as $pattern => $key) {
+        foreach (self::$validationRegexp as $pattern => $key) {
           if (preg_match($pattern, $media->{$source_field}->{$property_name}, $matches)) {
             return $matches;
           }
