@@ -40,6 +40,7 @@ class InstagramEmbedFormatter extends FormatterBase {
       foreach (Instagram::$validationRegexp as $pattern => $key) {
         if (preg_match($pattern, $this->getEmbedCode($item), $item_matches)) {
           $matches[] = $item_matches;
+          break;
         }
       }
 
