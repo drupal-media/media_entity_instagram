@@ -45,14 +45,23 @@ class InstagramEmbedFormatterTest extends WebTestBase {
    *
    * @var string
    */
-  protected $media_id = 'Instagram';
+  protected $media_id = 'instagram';
+
+  /**
+   * The test media bundle.
+   *
+   * @var \Drupal\media_entity\MediaBundleInterface
+   */
+  protected $testBundle;
 
   /**
    * {@inheritdoc}
    */
   protected function setUp() {
     parent::setUp();
-    $this->testBundle = $this->drupalCreateMediaBundle();
+
+    $bundle['bundle'] = $this->media_id;
+    $this->testBundle = $this->drupalCreateMediaBundle($bundle, 'instagram');
     $this->drupalPlaceBlock('local_actions_block');
     $this->adminUser = $this->drupalCreateUser([
       'administer media',
@@ -77,15 +86,15 @@ class InstagramEmbedFormatterTest extends WebTestBase {
    */
   public function testManageFieldFormatter() {
     // Test and create one media bundle.
-    $bundle = $this->createMediaBundle();
+    $bundle = $this->testBundle;
 
     // Assert that the media bundle has the expected values before proceeding.
-    $this->drupalGet('admin/structure/media/manage/' . $bundle['id']);
-    $this->assertFieldByName('label', $bundle['label']);
-    $this->assertFieldByName('type', $bundle['type']);
+    $this->drupalGet('admin/structure/media/manage/' . $bundle->id());
+    $this->assertFieldByName('label', $bundle->label());
+    $this->assertFieldByName('type', 'instagram');
 
     // Add and save field settings (Embed code).
-    $this->drupalGet('admin/structure/media/manage/' . $bundle['id'] . '/fields/add-field');
+    $this->drupalGet('admin/structure/media/manage/' . $bundle->id() . '/fields/add-field');
     $edit_conf = [
       'new_storage_type' => 'string_long',
       'label' => 'Embed code',
@@ -115,15 +124,15 @@ class InstagramEmbedFormatterTest extends WebTestBase {
 
     // Test if edit worked and if new field values have been saved as
     // expected.
-    $this->drupalGet('admin/structure/media/manage/' . $bundle['id']);
-    $this->assertFieldByName('label', $bundle['label']);
-    $this->assertFieldByName('type', $bundle['type']);
+    $this->drupalGet('admin/structure/media/manage/' . $bundle->id());
+    $this->assertFieldByName('label', $bundle->label());
+    $this->assertFieldByName('type', 'instagram');
     $this->assertFieldByName('type_configuration[instagram][source_field]', 'field_embed_code');
     $this->drupalPostForm(NULL, NULL, t('Save media bundle'));
-    $this->assertText('The media bundle ' . $bundle['label'] . ' has been updated.');
-    $this->assertText('Instagram');
+    $this->assertText('The media bundle ' . $bundle->label() . ' has been updated.');
+    $this->assertText($bundle->label());
 
-    $this->drupalGet('admin/structure/media/manage/' . $bundle['id'] . '/display');
+    $this->drupalGet('admin/structure/media/manage/' . $bundle->id() . '/display');
 
     // Set and save the settings of the new field.
     $edit = [
@@ -134,7 +143,7 @@ class InstagramEmbedFormatterTest extends WebTestBase {
     $this->assertText('Your settings have been saved.');
 
     // Create and save the media with an instagram media code.
-    $this->drupalGet('media/add/' . $bundle['id']);
+    $this->drupalGet('media/add/' . $bundle->id());
 
     // Random image from instagram.
     $instagram = "<blockquote class='instagram-media' " .
@@ -163,32 +172,6 @@ class InstagramEmbedFormatterTest extends WebTestBase {
 
     // Assert that the formatter exists on this page.
     $this->assertFieldByXPath('/html/body/div/main/div/div/article/div[5]/div[2]/iframe');
-  }
-
-  /**
-   * Creates and tests a new media bundle.
-   *
-   * @return array
-   *   Returns the media bundle fields.
-   */
-  public function createMediaBundle() {
-    // Generates and holds all media bundle fields.
-    $edit = [
-      'id' => strtolower($this->media_id),
-      'label' => $this->media_id,
-      'type' => 'instagram',
-    ];
-
-    // Create new media bundle.
-    $this->drupalPostForm('admin/structure/media/add', $edit, t('Save media bundle'));
-    $this->assertText('The media bundle ' . $this->media_id . ' has been added.');
-
-    // Check if media bundle is successfully created.
-    $this->drupalGet('admin/structure/media');
-    $this->assertResponse(200);
-    $this->assertRaw($edit['label']);
-
-    return $edit;
   }
 
 }
