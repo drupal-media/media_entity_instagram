@@ -38,14 +38,9 @@ class InstagramEmbedFormatter extends FormatterBase {
     foreach ($items as $delta => $item) {
       $matches = [];
       foreach (Instagram::$validationRegexp as $pattern => $key) {
-        if (preg_match($pattern, $this->getEmbedCode($item), $item_matches)) {
-          $matches[] = $item_matches;
+        if (preg_match($pattern, $this->getEmbedCode($item), $matches)) {
           break;
         }
-      }
-
-      if (!empty($matches)) {
-        $matches = reset($matches);
       }
 
       if (!empty($matches['shortcode'])) {
