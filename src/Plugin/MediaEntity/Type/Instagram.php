@@ -9,7 +9,7 @@ namespace Drupal\media_entity_instagram\Plugin\MediaEntity\Type;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityManager;
-use Drupal\media_entity\MediaBundleInterface;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\media_entity\MediaInterface;
 use Drupal\media_entity\MediaTypeBase;
 use Drupal\media_entity\MediaTypeException;
@@ -181,47 +181,46 @@ class Instagram extends MediaTypeBase {
   /**
    * {@inheritdoc}
    */
-  public function settingsForm(MediaBundleInterface $bundle) {
-    $form = array();
-
-    $options = array();
-    $allowed_field_types = array('string', 'string_long', 'link');
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+    $options = [];
+    $bundle = $form_state->getFormObject()->getEntity();
+    $allowed_field_types = ['string', 'string_long', 'link'];
     foreach ($this->entityManager->getFieldDefinitions('media', $bundle->id()) as $field_name => $field) {
       if (in_array($field->getType(), $allowed_field_types) && !$field->getFieldStorageDefinition()->isBaseField()) {
         $options[$field_name] = $field->getLabel();
       }
     }
 
-    $form['source_field'] = array(
+    $form['source_field'] = [
       '#type' => 'select',
       '#title' => t('Field with source information'),
       '#description' => t('Field on media entity that stores Instagram embed code or URL. You can create a bundle without selecting a value for this dropdown initially. This dropdown can be populated after adding fields to the bundle.'),
       '#default_value' => empty($this->configuration['source_field']) ? NULL : $this->configuration['source_field'],
       '#options' => $options,
-    );
+    ];
 
-    $form['use_instagram_api'] = array(
+    $form['use_instagram_api'] = [
       '#type' => 'select',
       '#title' => t('Whether to use Instagram api to fetch instagrams or not.'),
       '#description' => t("In order to use Instagram's api you have to create a developer account and an application. For more information consult the readme file."),
       '#default_value' => empty($this->configuration['use_instagram_api']) ? 0 : $this->configuration['use_instagram_api'],
-      '#options' => array(
+      '#options' => [
         0 => t('No'),
         1 => t('Yes'),
-      ),
-    );
+      ],
+    ];
 
     // @todo Evaluate if this should be a site-wide configuration.
-    $form['client_id'] = array(
+    $form['client_id'] = [
       '#type' => 'textfield',
       '#title' => t('Client ID'),
       '#default_value' => empty($this->configuration['client_id']) ? NULL : $this->configuration['client_id'],
-      '#states' => array(
-        'visible' => array(
-          ':input[name="type_configuration[instagram][use_instagram_api]"]' => array('value' => '1'),
-        ),
-      ),
-    );
+      '#states' => [
+        'visible' => [
+          ':input[name="type_configuration[instagram][use_instagram_api]"]' => ['value' => '1'],
+        ],
+      ],
+    ];
 
     return $form;
   }
