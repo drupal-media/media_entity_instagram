@@ -316,12 +316,19 @@ class Instagram extends MediaTypeBase {
   /**
    * {@inheritdoc}
    */
+  public function getDefaultThumbnail() {
+    return $this->config->get('icon_base') . '/instagram.png';
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function thumbnail(MediaInterface $media) {
     if ($local_image = $this->getField($media, 'thumbnail_local')) {
       return $local_image;
     }
 
-    return $this->config->get('icon_base') . '/instagram.png';
+    return $this->getDefaultThumbnail();
   }
 
 }
