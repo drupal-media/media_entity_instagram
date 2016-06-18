@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\media_entity_instagram\Plugin\MediaEntity\Type\Instagram.
- */
-
 namespace Drupal\media_entity_instagram\Plugin\MediaEntity\Type;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -15,6 +10,7 @@ use Drupal\media_entity\MediaInterface;
 use Drupal\media_entity\MediaTypeBase;
 use Drupal\media_entity\MediaTypeException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Instagram\Instagram as InstagramApi;
 
 /**
  * Provides media type plugin for Instagram.
@@ -101,7 +97,7 @@ class Instagram extends MediaTypeBase {
         'id' => $this->t('Media ID'),
         'type' => $this->t('Media type: image or video'),
         'thumbnail' => $this->t('Link to the thumbnail'),
-        'thumbnail_local' => $this->t('Copies thumbnail locally and return it\'s URI'),
+        'thumbnail_local' => $this->t("Copies thumbnail locally and return it's URI"),
         'thumbnail_local_uri' => $this->t('Returns local URI of the thumbnail'),
         'username' => $this->t('Author of the post'),
         'caption' => $this->t('Caption'),
@@ -162,7 +158,7 @@ class Instagram extends MediaTypeBase {
           }
           return FALSE;
 
-      case 'thumbnail_local_uri':
+        case 'thumbnail_local_uri':
           if (isset($instagram->images->thumbnail->url)) {
             return $this->configFactory->get('media_entity_instagram.settings')->get('local_images') . '/' . $matches['shortcode'] . '.' . pathinfo($instagram->images->thumbnail->url, PATHINFO_EXTENSION);
           }
@@ -182,7 +178,7 @@ class Instagram extends MediaTypeBase {
 
         case 'tags':
           if (isset($instagram->tags)) {
-            return implode(" " , $instagram->tags);
+            return implode(" ", $instagram->tags);
           }
           return FALSE;
       }
@@ -309,7 +305,7 @@ class Instagram extends MediaTypeBase {
         drupal_set_message(t('The client ID is missing. Please add it in your Instagram settings.'), 'error');
         return;
       }
-      $instagram_object = new \Instagram\Instagram;
+      $instagram_object = new InstagramApi();
       $instagram_object->setClientID($this->configuration['client_id']);
       $result = $instagram_object->getMediaByShortcode($shortcode)->getData();
 

@@ -1,13 +1,7 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\media_entity_instagram\Plugin\Field\FieldFormatter\InstagramEmbedFormatter.
- */
-
 namespace Drupal\media_entity_instagram\Plugin\Field\FieldFormatter;
 
-use Drupal\Core\Field\FieldItemInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\FormatterBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -97,4 +91,5 @@ class InstagramEmbedFormatter extends FormatterBase {
 
     return $elements;
   }
+
 }

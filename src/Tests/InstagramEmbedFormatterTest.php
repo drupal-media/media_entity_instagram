@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\media_entity_instagram\Tests\InstagramEmbedFormatterTest.
- */
-
 namespace Drupal\media_entity_instagram\Tests;
 
 use Drupal\simpletest\WebTestBase;
@@ -45,7 +40,7 @@ class InstagramEmbedFormatterTest extends WebTestBase {
    *
    * @var string
    */
-  protected $media_id = 'instagram';
+  protected $mediaId = 'instagram';
 
   /**
    * The test media bundle.
@@ -60,7 +55,7 @@ class InstagramEmbedFormatterTest extends WebTestBase {
   protected function setUp() {
     parent::setUp();
 
-    $bundle['bundle'] = $this->media_id;
+    $bundle['bundle'] = $this->mediaId;
     $this->testBundle = $this->drupalCreateMediaBundle($bundle, 'instagram');
     $this->drupalPlaceBlock('local_actions_block');
     $this->adminUser = $this->drupalCreateUser([
