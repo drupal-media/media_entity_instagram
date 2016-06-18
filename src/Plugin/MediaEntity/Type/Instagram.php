@@ -70,6 +70,15 @@ class Instagram extends MediaTypeBase {
   }
 
   /**
+   * {@inheritdoc}
+   */
+  public function defaultConfiguration() {
+    return [
+      'use_instagram_api' => FALSE,
+    ];
+  }
+
+  /**
    * List of validation regular expressions.
    *
    * @var array
