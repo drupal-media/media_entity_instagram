@@ -336,4 +336,26 @@ class Instagram extends MediaTypeBase {
     return $this->getDefaultThumbnail();
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function getDefaultName(MediaInterface $media) {
+    // Try to get some fields that need the API, if not available, just use the
+    // shortcode as default name.
+
+    $username = $this->getField($media, 'username');
+    $id = $this->getField($media, 'id');
+    if ($username && $id) {
+      return $username . ' - ' . $id;
+    }
+    else {
+      $code = $this->getField($media, 'shortcode');
+      if (!empty($code)) {
+        return $code;
+      }
+    }
+
+    return parent::getDefaultName($media);
+  }
+
 }
