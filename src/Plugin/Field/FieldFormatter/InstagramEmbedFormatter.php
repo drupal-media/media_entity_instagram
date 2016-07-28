@@ -75,18 +75,18 @@ class InstagramEmbedFormatter extends FormatterBase {
 
     $elements['width'] = array(
       '#type' => 'number',
-      '#title' => t('Width'),
+      '#title' => $this->t('Width'),
       '#default_value' => $this->getSetting('width'),
       '#min' => 1,
-      '#description' => t('Width of instagram.'),
+      '#description' => $this->t('Width of instagram.'),
     );
 
     $elements['height'] = array(
       '#type' => 'number',
-      '#title' => t('Height'),
+      '#title' => $this->t('Height'),
       '#default_value' => $this->getSetting('height'),
       '#min' => 1,
-      '#description' => t('Height of instagram.'),
+      '#description' => $this->t('Height of instagram.'),
     );
 
     return $elements;

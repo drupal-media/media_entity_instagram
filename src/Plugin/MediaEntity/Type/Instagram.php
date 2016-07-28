@@ -202,27 +202,27 @@ class Instagram extends MediaTypeBase {
 
     $form['source_field'] = [
       '#type' => 'select',
-      '#title' => t('Field with source information'),
-      '#description' => t('Field on media entity that stores Instagram embed code or URL. You can create a bundle without selecting a value for this dropdown initially. This dropdown can be populated after adding fields to the bundle.'),
+      '#title' => $this->t('Field with source information'),
+      '#description' => $this->t('Field on media entity that stores Instagram embed code or URL. You can create a bundle without selecting a value for this dropdown initially. This dropdown can be populated after adding fields to the bundle.'),
       '#default_value' => empty($this->configuration['source_field']) ? NULL : $this->configuration['source_field'],
       '#options' => $options,
     ];
 
     $form['use_instagram_api'] = [
       '#type' => 'select',
-      '#title' => t('Whether to use Instagram api to fetch instagrams or not.'),
-      '#description' => t("In order to use Instagram's api you have to create a developer account and an application. For more information consult the readme file."),
+      '#title' => $this->t('Whether to use Instagram api to fetch instagrams or not.'),
+      '#description' => $this->t("In order to use Instagram's api you have to create a developer account and an application. For more information consult the readme file."),
       '#default_value' => empty($this->configuration['use_instagram_api']) ? 0 : $this->configuration['use_instagram_api'],
       '#options' => [
-        0 => t('No'),
-        1 => t('Yes'),
+        0 => $this->t('No'),
+        1 => $this->t('Yes'),
       ],
     ];
 
     // @todo Evaluate if this should be a site-wide configuration.
     $form['client_id'] = [
       '#type' => 'textfield',
-      '#title' => t('Client ID'),
+      '#title' => $this->t('Client ID'),
       '#default_value' => empty($this->configuration['client_id']) ? NULL : $this->configuration['client_id'],
       '#states' => [
         'visible' => [
@@ -293,16 +293,16 @@ class Instagram extends MediaTypeBase {
       // Check for dependencies.
       // @todo There is perhaps a better way to do that.
       if (!class_exists('\Instagram\Instagram')) {
-        drupal_set_message(t('Instagram library is not available. Consult the README.md for installation instructions.'), 'error');
+        drupal_set_message($this->t('Instagram library is not available. Consult the README.md for installation instructions.'), 'error');
         return;
       }
 
       if (!isset($this->configuration['client_id'])) {
-        drupal_set_message(t('The client ID is not available. Consult the README.md for installation instructions.'), 'error');
+        drupal_set_message($this->t('The client ID is not available. Consult the README.md for installation instructions.'), 'error');
         return;
       }
       if (empty($this->configuration['client_id'])) {
-        drupal_set_message(t('The client ID is missing. Please add it in your Instagram settings.'), 'error');
+        drupal_set_message($this->t('The client ID is missing. Please add it in your Instagram settings.'), 'error');
         return;
       }
       $instagram_object = new InstagramApi();
