@@ -92,4 +92,18 @@ class InstagramEmbedFormatter extends FormatterBase {
     return $elements;
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function settingsSummary() {
+    return [
+      $this->t('Width: @width px', [
+        '@width' => $this->getSetting('width'),
+      ]),
+      $this->t('Height: @height px', [
+        '@height' => $this->getSetting('height'),
+      ]),
+    ];
+  }
+
 }
