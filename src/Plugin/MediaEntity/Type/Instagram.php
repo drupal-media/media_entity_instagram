@@ -8,11 +8,9 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\media_entity\MediaInterface;
 use Drupal\media_entity\MediaTypeBase;
-use Drupal\media_entity\MediaTypeException;
 use Drupal\media_entity_instagram\InstagramEmbedFetcher;
 use GuzzleHttp\Client;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Instagram\Instagram as InstagramApi;
 
 /**
  * Provides media type plugin for Instagram.
@@ -35,14 +33,14 @@ class Instagram extends MediaTypeBase {
   /**
    * The instagram fetcher.
    *
-   * @var InstagramEmbedFetcher
+   * @var \Drupal\media_entity_instagram\InstagramEmbedFetcher
    */
   protected $fetcher;
 
   /**
    * Guzzle client.
    *
-   * @var Client
+   * @var \GuzzleHttp\Client
    */
   protected $httpClient;
 
@@ -61,8 +59,10 @@ class Instagram extends MediaTypeBase {
    *   Entity field manager service.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   Config factory service.
-   * @param InstagramEmbedFetcher $fetcher
+   * @param \Drupal\media_entity_instagram\InstagramEmbedFetcher $fetcher
    *   Instagram fetcher service.
+   * @param \GuzzleHttp\Client $httpClient
+   *   Guzzle client.
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager, ConfigFactoryInterface $config_factory, InstagramEmbedFetcher $fetcher, Client $httpClient) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $entity_type_manager, $entity_field_manager, $config_factory->get('media_entity.settings'));
@@ -92,10 +92,10 @@ class Instagram extends MediaTypeBase {
    *
    * @var array
    */
-  public static $validationRegexp = array(
+  public static $validationRegexp = [
     '@((http|https):){0,1}//(www\.){0,1}instagram\.com/p/(?<shortcode>[a-z0-9_-]+)@i' => 'shortcode',
     '@((http|https):){0,1}//(www\.){0,1}instagr\.am/p/(?<shortcode>[a-z0-9_-]+)@i' => 'shortcode',
-  );
+  ];
 
   /**
    * {@inheritdoc}
@@ -239,7 +239,7 @@ class Instagram extends MediaTypeBase {
   /**
    * Runs preg_match on embed code/URL.
    *
-   * @param MediaInterface $media
+   * @param \Drupal\media_entity\MediaInterface $media
    *   Media object.
    *
    * @return array|bool
@@ -248,7 +248,7 @@ class Instagram extends MediaTypeBase {
    * @see preg_match()
    */
   protected function matchRegexp(MediaInterface $media) {
-    $matches = array();
+    $matches = [];
 
     if (isset($this->configuration['source_field'])) {
       $source_field = $this->configuration['source_field'];

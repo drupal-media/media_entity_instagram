@@ -30,7 +30,7 @@ class InstagramEmbedFormatter extends FormatterBase implements ContainerFactoryP
   /**
    * The instagram fetcher.
    *
-   * @var InstagramEmbedFetcher
+   * @var \Drupal\media_entity_instagram\Plugin\MediaEntity\Type\InstagramEmbedFetcher
    */
   protected $fetcher;
 
@@ -62,7 +62,7 @@ class InstagramEmbedFormatter extends FormatterBase implements ContainerFactoryP
    * {@inheritdoc}
    */
   public function viewElements(FieldItemListInterface $items, $langcode) {
-    $element = array();
+    $element = [];
     $settings = $this->getSettings();
     foreach ($items as $delta => $item) {
       $matches = [];
@@ -104,10 +104,10 @@ class InstagramEmbedFormatter extends FormatterBase implements ContainerFactoryP
    * {@inheritdoc}
    */
   public static function defaultSettings() {
-    return array(
+    return [
       'width' => NULL,
       'hidecaption' => FALSE,
-    ) + parent::defaultSettings();
+    ] + parent::defaultSettings();
   }
 
   /**
@@ -116,20 +116,20 @@ class InstagramEmbedFormatter extends FormatterBase implements ContainerFactoryP
   public function settingsForm(array $form, FormStateInterface $form_state) {
     $elements = parent::settingsForm($form, $form_state);
 
-    $elements['width'] = array(
+    $elements['width'] = [
       '#type' => 'number',
       '#title' => $this->t('Width'),
       '#default_value' => $this->getSetting('width'),
       '#min' => 320,
       '#description' => $this->t('Max width of instagram.'),
-    );
+    ];
 
-    $elements['hidecaption'] = array(
+    $elements['hidecaption'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Caption hidden'),
       '#default_value' => $this->getSetting('hidecaption'),
       '#description' => $this->t('Enable to hide caption of Instagram posts.'),
-    );
+    ];
 
     return $elements;
   }

@@ -32,23 +32,23 @@ class InstagramEmbedFetcher implements InstagramEmbedFetcherInterface {
   /**
    * Guzzle client.
    *
-   * @var Client
+   * @var \GuzzleHttp\Client
    */
   protected $httpClient;
 
   /**
    * Logger.
    *
-   * @var LoggerChannelFactoryInterface
+   * @var \Drupal\Core\Logger\LoggerChannelFactoryInterface
    */
   protected $loggerFactory;
 
   /**
    * InstagramEmbedFetcher constructor.
    *
-   * @param Client $client
+   * @param \GuzzleHttp\Client $client
    *   A HTTP Client.
-   * @param LoggerChannelFactoryInterface $loggerFactory
+   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerFactory
    *   A logger factory.
    * @param \Drupal\Core\Cache\CacheBackendInterface|null $cache
    *   (optional) A cache bin for storing fetched instagram posts.

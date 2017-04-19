@@ -17,14 +17,14 @@ class InstagramEmbedFormatterTest extends WebTestBase {
    *
    * @var array
    */
-  public static $modules = array(
+  public static $modules = [
     'media_entity_instagram',
     'media_entity',
     'node',
     'field_ui',
     'views_ui',
     'block',
-  );
+  ];
 
   use MediaTestTrait;
 

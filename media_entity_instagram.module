@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * The module file.
+ */
+
+/**
  * Implements hook_theme().
  */
 function media_entity_instagram_theme() {
