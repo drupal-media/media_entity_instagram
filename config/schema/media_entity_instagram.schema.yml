@@ -13,20 +13,14 @@ media_entity.bundle.type.instagram:
     source_field:
       type: string
       label: 'Field with embed code/URL'
-    use_instagram_api:
-      type: boolean
-      label: 'Whether to use instagram api or not'
-    client_id:
-      type: string
-      label: 'Field with client id'
 
 field.formatter.settings.instagram_embed:
   type: mapping
-  label: 'Image field display format settings'
+  label: 'Instagram field display format settings'
   mapping:
     width:
       type: integer
-      label: 'Width'
-    height:
-      type: integer
-      label: 'Height'
+      label: 'Max-Width'
+    hidecaption:
+      type: boolean
+      label: 'Caption hidden'

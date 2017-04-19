@@ -9,6 +9,8 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\media_entity\MediaInterface;
 use Drupal\media_entity\MediaTypeBase;
 use Drupal\media_entity\MediaTypeException;
+use Drupal\media_entity_instagram\InstagramEmbedFetcher;
+use GuzzleHttp\Client;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Instagram\Instagram as InstagramApi;
 
@@ -31,6 +33,20 @@ class Instagram extends MediaTypeBase {
   protected $configFactory;
 
   /**
+   * The instagram fetcher.
+   *
+   * @var InstagramEmbedFetcher
+   */
+  protected $fetcher;
+
+  /**
+   * Guzzle client.
+   *
+   * @var Client
+   */
+  protected $httpClient;
+
+  /**
    * Constructs a new class instance.
    *
    * @param array $configuration
@@ -45,10 +61,14 @@ class Instagram extends MediaTypeBase {
    *   Entity field manager service.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   Config factory service.
+   * @param InstagramEmbedFetcher $fetcher
+   *   Instagram fetcher service.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager, ConfigFactoryInterface $config_factory) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager, ConfigFactoryInterface $config_factory, InstagramEmbedFetcher $fetcher, Client $httpClient) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $entity_type_manager, $entity_field_manager, $config_factory->get('media_entity.settings'));
     $this->configFactory = $config_factory;
+    $this->fetcher = $fetcher;
+    $this->httpClient = $httpClient;
   }
 
   /**
@@ -61,17 +81,10 @@ class Instagram extends MediaTypeBase {
       $plugin_definition,
       $container->get('entity_type.manager'),
       $container->get('entity_field.manager'),
-      $container->get('config.factory')
+      $container->get('config.factory'),
+      $container->get('media_entity_instagram.instagram_embed_fetcher'),
+      $container->get('http_client')
     );
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function defaultConfiguration() {
-    return [
-      'use_instagram_api' => FALSE,
-    ];
   }
 
   /**
@@ -88,24 +101,16 @@ class Instagram extends MediaTypeBase {
    * {@inheritdoc}
    */
   public function providedFields() {
-    $fields = array(
+    return [
       'shortcode' => $this->t('Instagram shortcode'),
-    );
-
-    if ($this->configuration['use_instagram_api']) {
-      $fields += array(
-        'id' => $this->t('Media ID'),
-        'type' => $this->t('Media type: image or video'),
-        'thumbnail' => $this->t('Link to the thumbnail'),
-        'thumbnail_local' => $this->t("Copies thumbnail locally and return it's URI"),
-        'thumbnail_local_uri' => $this->t('Returns local URI of the thumbnail'),
-        'username' => $this->t('Author of the post'),
-        'caption' => $this->t('Caption'),
-        'tags' => $this->t('Tags'),
-      );
-    }
-
-    return $fields;
+      'id' => $this->t('Media ID'),
+      'type' => $this->t('Media type: image or video'),
+      'thumbnail' => $this->t('Link to the thumbnail'),
+      'thumbnail_local' => $this->t("Copies thumbnail locally and return it's URI"),
+      'thumbnail_local_uri' => $this->t('Returns local URI of the thumbnail'),
+      'username' => $this->t('Author of the post'),
+      'caption' => $this->t('Caption'),
+    ];
   }
 
   /**
@@ -123,64 +128,66 @@ class Instagram extends MediaTypeBase {
     }
 
     // If we have auth settings return the other fields.
-    if ($this->configuration['use_instagram_api'] && $instagram = $this->fetchInstagram($matches['shortcode'])) {
+    if ($instagram = $this->fetcher->fetchInstagramEmbed($matches['shortcode'])) {
       switch ($name) {
         case 'id':
-          if (isset($instagram->id)) {
-            return $instagram->id;
+          if (isset($instagram['media_id'])) {
+            return $instagram['media_id'];
           }
           return FALSE;
 
         case 'type':
-          if (isset($instagram->type)) {
-            return $instagram->type;
+          if (isset($instagram['type'])) {
+            return $instagram['type'];
           }
           return FALSE;
 
         case 'thumbnail':
-          if (isset($instagram->images->thumbnail->url)) {
-            return $instagram->images->thumbnail->url;
+          if (isset($instagram['thumbnail_url'])) {
+            return $instagram['thumbnail_url'];
           }
           return FALSE;
 
         case 'thumbnail_local':
-          if (isset($instagram->images->thumbnail->url)) {
-            $local_uri = $this->configFactory->get('media_entity_instagram.settings')->get('local_images') . '/' . $matches['shortcode'] . '.' . pathinfo($instagram->images->thumbnail->url, PATHINFO_EXTENSION);
+          $local_uri = $this->getField($media, 'thumbnail_local_uri');
 
-            if (!file_exists($local_uri)) {
-              file_prepare_directory($local_uri, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
-
-              $image = file_get_contents($local_uri);
-              file_unmanaged_save_data($image, $local_uri, FILE_EXISTS_REPLACE);
-
+          if ($local_uri) {
+            if (file_exists($local_uri)) {
               return $local_uri;
+            }
+            else {
+
+              $directory = dirname($local_uri);
+              file_prepare_directory($directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
+
+              $image_url = $this->getField($media, 'thumbnail');
+
+              $response = $this->httpClient->get($image_url);
+              if ($response->getStatusCode() == 200) {
+                return file_unmanaged_save_data($response->getBody(), $local_uri, FILE_EXISTS_REPLACE);
+              }
             }
           }
           return FALSE;
 
         case 'thumbnail_local_uri':
-          if (isset($instagram->images->thumbnail->url)) {
-            return $this->configFactory->get('media_entity_instagram.settings')->get('local_images') . '/' . $matches['shortcode'] . '.' . pathinfo($instagram->images->thumbnail->url, PATHINFO_EXTENSION);
+          if (isset($instagram['thumbnail_url'])) {
+            return $this->configFactory->get('media_entity_instagram.settings')->get('local_images') . '/' . $matches['shortcode'] . '.' . pathinfo(parse_url($instagram['thumbnail_url'], PHP_URL_PATH), PATHINFO_EXTENSION);
           }
           return FALSE;
 
         case 'username':
-          if (isset($instagram->user->username)) {
-            return $instagram->user->username;
+          if (isset($instagram['author_name'])) {
+            return $instagram['author_name'];
           }
           return FALSE;
 
         case 'caption':
-          if (isset($instagram->caption->text)) {
-            return $instagram->caption->text;
+          if (isset($instagram['title'])) {
+            return $instagram['title'];
           }
           return FALSE;
 
-        case 'tags':
-          if (isset($instagram->tags)) {
-            return implode(" ", $instagram->tags);
-          }
-          return FALSE;
       }
     }
 
@@ -206,29 +213,6 @@ class Instagram extends MediaTypeBase {
       '#description' => $this->t('Field on media entity that stores Instagram embed code or URL. You can create a bundle without selecting a value for this dropdown initially. This dropdown can be populated after adding fields to the bundle.'),
       '#default_value' => empty($this->configuration['source_field']) ? NULL : $this->configuration['source_field'],
       '#options' => $options,
-    ];
-
-    $form['use_instagram_api'] = [
-      '#type' => 'select',
-      '#title' => $this->t('Whether to use Instagram api to fetch instagrams or not.'),
-      '#description' => $this->t("In order to use Instagram's api you have to create a developer account and an application. For more information consult the readme file."),
-      '#default_value' => empty($this->configuration['use_instagram_api']) ? 0 : $this->configuration['use_instagram_api'],
-      '#options' => [
-        0 => $this->t('No'),
-        1 => $this->t('Yes'),
-      ],
-    ];
-
-    // @todo Evaluate if this should be a site-wide configuration.
-    $form['client_id'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Client ID'),
-      '#default_value' => empty($this->configuration['client_id']) ? NULL : $this->configuration['client_id'],
-      '#states' => [
-        'visible' => [
-          ':input[name="type_configuration[instagram][use_instagram_api]"]' => ['value' => '1'],
-        ],
-      ],
     ];
 
     return $form;
@@ -281,44 +265,6 @@ class Instagram extends MediaTypeBase {
   }
 
   /**
-   * Get a single instagram.
-   *
-   * @param string $shortcode
-   *   The instagram shortcode.
-   */
-  protected function fetchInstagram($shortcode) {
-    $instagram = &drupal_static(__FUNCTION__);
-
-    if (!isset($instagram)) {
-      // Check for dependencies.
-      // @todo There is perhaps a better way to do that.
-      if (!class_exists('\Instagram\Instagram')) {
-        drupal_set_message($this->t('Instagram library is not available. Consult the README.md for installation instructions.'), 'error');
-        return;
-      }
-
-      if (!isset($this->configuration['client_id'])) {
-        drupal_set_message($this->t('The client ID is not available. Consult the README.md for installation instructions.'), 'error');
-        return;
-      }
-      if (empty($this->configuration['client_id'])) {
-        drupal_set_message($this->t('The client ID is missing. Please add it in your Instagram settings.'), 'error');
-        return;
-      }
-      $instagram_object = new InstagramApi();
-      $instagram_object->setClientID($this->configuration['client_id']);
-      $result = $instagram_object->getMediaByShortcode($shortcode)->getData();
-
-      if ($result) {
-        return $result;
-      }
-      else {
-        throw new MediaTypeException(NULL, 'The media could not be retrieved.');
-      }
-    }
-  }
-
-  /**
    * {@inheritdoc}
    */
   public function getDefaultThumbnail() {
@@ -342,7 +288,6 @@ class Instagram extends MediaTypeBase {
   public function getDefaultName(MediaInterface $media) {
     // Try to get some fields that need the API, if not available, just use the
     // shortcode as default name.
-
     $username = $this->getField($media, 'username');
     $id = $this->getField($media, 'id');
     if ($username && $id) {
