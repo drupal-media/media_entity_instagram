@@ -92,7 +92,7 @@ class InstagramEmbedFormatter extends FormatterBase implements ContainerFactoryP
     if (!empty($element)) {
       $element['#attached'] = [
         'library' => [
-          'media_entity_instagram/instagram.embeds',
+          'media_entity_instagram/integration',
         ],
       ];
     }
