@@ -143,10 +143,7 @@ class Instagram extends MediaTypeBase {
           return FALSE;
 
         case 'thumbnail':
-          if (isset($instagram['thumbnail_url'])) {
-            return $instagram['thumbnail_url'];
-          }
-          return FALSE;
+          return 'http://instagram.com/p/' . $matches['shortcode'] . '/media/?size=m';
 
         case 'thumbnail_local':
           $local_uri = $this->getField($media, 'thumbnail_local_uri');
