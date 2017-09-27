@@ -6,13 +6,9 @@ media_entity_instagram.settings:
       type: string
       label: 'Base folder for thumbnails'
 
-media_entity.bundle.type.instagram:
-  type: mapping
-  label: 'Instagram type configuration'
-  mapping:
-    source_field:
-      type: string
-      label: 'Field with embed code/URL'
+media.source.instagram:
+  type: media.source.field_aware
+  label: '"Instagram" media source configuration'
 
 field.formatter.settings.instagram_embed:
   type: mapping

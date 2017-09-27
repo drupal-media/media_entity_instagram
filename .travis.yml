@@ -42,9 +42,8 @@ before_install:
 script:
   - phpcs --report=full --standard=Drupal "$TRAVIS_BUILD_DIR" || true
   - cd ~/
-  - git clone --depth 1 --branch 8.0.x http://git.drupal.org/project/drupal.git
+  - git clone --depth 1 --branch 8.4.x http://git.drupal.org/project/drupal.git
   - cd drupal/modules
-  - git clone --depth 1 --branch 8.x-1.x http://git.drupal.org/project/media_entity.git
   - ln -s $TRAVIS_BUILD_DIR
   - cd ../
   - ./vendor/bin/phpunit -c core modules/media_entity_instagram/tests/src/Unit

@@ -3,12 +3,12 @@
 namespace Drupal\media_entity_instagram\Plugin\Field\FieldFormatter;
 
 use Drupal\Core\Field\FieldDefinitionInterface;
+use Drupal\Core\Field\FieldItemInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\FormatterBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Drupal\media_entity\EmbedCodeValueTrait;
-use Drupal\media_entity_instagram\Plugin\MediaEntity\Type\Instagram;
+use Drupal\media_entity_instagram\Plugin\media\Source\Instagram;
 use Drupal\media_entity_instagram\InstagramEmbedFetcher;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -25,12 +25,10 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class InstagramEmbedFormatter extends FormatterBase implements ContainerFactoryPluginInterface {
 
-  use EmbedCodeValueTrait;
-
   /**
    * The instagram fetcher.
    *
-   * @var \Drupal\media_entity_instagram\Plugin\MediaEntity\Type\InstagramEmbedFetcher
+   * @var \Drupal\media_entity_instagram\InstagramEmbedFetcher
    */
   protected $fetcher;
 
@@ -153,6 +151,29 @@ class InstagramEmbedFormatter extends FormatterBase implements ContainerFactoryP
     ]);
 
     return $summary;
+  }
+
+  /**
+   * Extracts the raw embed code from input which may or may not be wrapped.
+   *
+   * @param mixed $value
+   *   The input value. Can be a normal string or a value wrapped by the
+   *   Typed Data API.
+   *
+   * @return string|null
+   *   The raw embed code.
+   */
+  protected function getEmbedCode($value) {
+    if (is_string($value)) {
+      return $value;
+    }
+    elseif ($value instanceof FieldItemInterface) {
+      $class = get_class($value);
+      $property = $class::mainPropertyName();
+      if ($property) {
+        return $value->$property;
+      }
+    }
   }
 
 }

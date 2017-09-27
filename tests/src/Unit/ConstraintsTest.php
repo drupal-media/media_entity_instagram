@@ -11,7 +11,7 @@ use Drupal\Tests\UnitTestCase;
 /**
  * Tests media_entity_instagram constrains.
  *
- * @group media_entity
+ * @group media
  */
 class ConstraintsTest extends UnitTestCase {
 
