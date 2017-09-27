@@ -1,16 +1,17 @@
 <?php
 
-namespace Drupal\media_entity_instagram\Tests;
+namespace Drupal\Tests\media_entity_instagram\Functional;
 
-use Drupal\simpletest\WebTestBase;
+use Drupal\media_entity\Entity\MediaBundle;
 use Drupal\media_entity\Tests\MediaTestTrait;
+use Drupal\Tests\BrowserTestBase;
 
 /**
  * Tests for Instagram embed formatter.
  *
  * @group media_entity_instagram
  */
-class InstagramEmbedFormatterTest extends WebTestBase {
+class InstagramEmbedFormatterTest extends BrowserTestBase {
 
   /**
    * Modules to enable.
@@ -86,8 +87,8 @@ class InstagramEmbedFormatterTest extends WebTestBase {
 
     // Assert that the media bundle has the expected values before proceeding.
     $this->drupalGet('admin/structure/media/manage/' . $bundle->id());
-    $this->assertFieldByName('label', $bundle->label());
-    $this->assertFieldByName('type', 'instagram');
+    $this->assertSession()->fieldValueEquals('label', $bundle->label());
+    $this->assertSession()->fieldValueEquals('type', 'instagram');
 
     // Add and save field settings (Embed code).
     $this->drupalGet('admin/structure/media/manage/' . $bundle->id() . '/fields/add-field');
@@ -97,36 +98,35 @@ class InstagramEmbedFormatterTest extends WebTestBase {
       'field_name' => 'embed_code',
     ];
     $this->drupalPostForm(NULL, $edit_conf, t('Save and continue'));
-    $this->assertText('These settings apply to the ' . $edit_conf['label'] . ' field everywhere it is used.');
+    $this->assertSession()->pageTextContains('These settings apply to the ' . $edit_conf['label'] . ' field everywhere it is used.');
     $edit = [
       'cardinality' => 'number',
       'cardinality_number' => '1',
     ];
     $this->drupalPostForm(NULL, $edit, t('Save field settings'));
-    $this->assertText('Updated field ' . $edit_conf['label'] . ' field settings.');
+    $this->assertSession()->pageTextContains('Updated field ' . $edit_conf['label'] . ' field settings.');
 
     // Set the new field as required.
     $edit = [
       'required' => TRUE,
     ];
     $this->drupalPostForm(NULL, $edit, t('Save settings'));
-    $this->assertText('Saved ' . $edit_conf['label'] . ' configuration.');
+    $this->assertSession()->pageTextContains('Saved ' . $edit_conf['label'] . ' configuration.');
 
     // Assert that the new field configuration has been successfully saved.
-    $xpath = $this->xpath('//*[@id="field-embed-code"]');
-    $this->assertEqual((string) $xpath[0]->td[0], 'Embed code');
-    $this->assertEqual((string) $xpath[0]->td[1], 'field_embed_code');
-    $this->assertEqual((string) $xpath[0]->td[2]->a, 'Text (plain, long)');
+    $this->assertEquals('Embed code', $this->xpath('//*[@id="field-embed-code"]/td[1]')[0]->getText());
+    $this->assertEquals('field_embed_code', $this->xpath('//*[@id="field-embed-code"]/td[2]')[0]->getText());
+    $this->assertEquals('Text (plain, long)', $this->xpath('//*[@id="field-embed-code"]/td[3]')[0]->getText());
 
     // Test if edit worked and if new field values have been saved as
     // expected.
     $this->drupalGet('admin/structure/media/manage/' . $bundle->id());
-    $this->assertFieldByName('label', $bundle->label());
-    $this->assertFieldByName('type', 'instagram');
-    $this->assertFieldByName('type_configuration[instagram][source_field]', 'field_embed_code');
+    $this->assertSession()->fieldValueEquals('label', $bundle->label());
+    $this->assertSession()->fieldValueEquals('type', 'instagram');
+    $this->assertSession()->fieldValueEquals('type_configuration[instagram][source_field]', 'field_embed_code');
     $this->drupalPostForm(NULL, NULL, t('Save media bundle'));
-    $this->assertText('The media bundle ' . $bundle->label() . ' has been updated.');
-    $this->assertText($bundle->label());
+    $this->assertSession()->pageTextContains('The media bundle ' . $bundle->label() . ' has been updated.');
+    $this->assertSession()->pageTextContains($bundle->label());
 
     $this->drupalGet('admin/structure/media/manage/' . $bundle->id() . '/display');
 
@@ -136,17 +136,17 @@ class InstagramEmbedFormatterTest extends WebTestBase {
       'fields[field_embed_code][type]' => 'instagram_embed',
     ];
     $this->drupalPostForm(NULL, $edit, t('Save'));
-    $this->assertText('Your settings have been saved.');
+    $this->assertSession()->pageTextContains('Your settings have been saved.');
 
     // First set absolute size of the embed.
-    $this->drupalPostAjaxForm(NULL, [], 'field_embed_code_settings_edit');
+    $this->submitForm([], 'field_embed_code_settings_edit');
     $edit = [
       'fields[field_embed_code][settings_edit_form][settings][hidecaption]' => FALSE,
     ];
-    $this->drupalPostAjaxForm(NULL, $edit, 'field_embed_code_plugin_settings_update');
+    $this->submitForm($edit, 'field_embed_code_plugin_settings_update');
     $this->drupalPostForm(NULL, [], t('Save'));
-    $this->assertText('Your settings have been saved.');
-    $this->assertText('Caption: Visible');
+    $this->assertSession()->pageTextContains('Your settings have been saved.');
+    $this->assertSession()->pageTextContains('Caption: Visible');
 
     // Create and save the media with an instagram media code.
     $this->drupalGet('media/add/' . $bundle->id());
@@ -161,13 +161,49 @@ class InstagramEmbedFormatterTest extends WebTestBase {
     $this->drupalPostForm(NULL, $edit, t('Save and publish'));
 
     // Assert that the media has been successfully saved.
-    $this->assertText('My test instagram');
-    $this->assertText('Embed code');
+    $this->assertSession()->pageTextContains('My test instagram');
+    $this->assertSession()->pageTextContains('Embed code');
 
     // Assert that the formatter exists on this page and that it has absolute
     // size.
     $this->assertFieldByXPath('//blockquote');
-    $this->assertRaw('platform.instagram.com/en_US/embeds.js');
+    $this->assertSession()->responseContains('platform.instagram.com/en_US/embeds.js');
+  }
+
+  /**
+   * Creates media bundle.
+   *
+   * @param array $values
+   *   The media bundle values.
+   * @param string $type_name
+   *   (optional) The media type provider plugin that is responsible for
+   *   additional logic related to this media).
+   *
+   * @return \Drupal\Core\Entity\EntityInterface
+   *   Returns newly created media bundle.
+   */
+  protected function drupalCreateMediaBundle(array $values = [], $type_name = 'generic') {
+    if (!isset($values['bundle'])) {
+      $id = strtolower($this->randomMachineName());
+    }
+    else {
+      $id = $values['bundle'];
+    }
+    $values += [
+      'id' => $id,
+      'label' => $id,
+      'type' => $type_name,
+      'type_configuration' => [],
+      'field_map' => [],
+      'new_revision' => FALSE,
+    ];
+
+    $bundle = MediaBundle::create($values);
+    $status = $bundle->save();
+
+    $this->assertEquals(SAVED_NEW, $status, t('Created media bundle %bundle.', ['%bundle' => $bundle->id()]));
+
+    return $bundle;
   }
 
 }
